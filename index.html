@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ore Collector v0.1.5</title>
+    <title>Ore Collector v0.1.6</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -685,6 +685,7 @@
         }
 
         function switchPage(page) {
+            if (isSpinning) return;
             elements.pageHome.classList.toggle('hidden', page !== 'home');
             elements.pageShop.classList.toggle('hidden', page !== 'shop');
             elements.navHome.classList.toggle('active', page === 'home');
