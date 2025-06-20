@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ore Spinner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #141619;
+            --bg-panel: #2C2E3A;
+            --text-main: #B3B4BD;
+            --text-light: #ffffff;
+            --col-green: #22c55e;
+            --col-red: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+        }
+
+        .reel-container {
+            -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+            mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+        }
+
+        .reel-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .reel-indicator::before,
+        .reel-indicator::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+        }
+
+        .reel-indicator::before {
+            top: -10px;
+            border-top: 10px solid var(--col-green);
+        }
+
+        .reel-indicator::after {
+            bottom: -10px;
+            border-bottom: 10px solid var(--col-green);
+        }
+
+        .reel {
+            transition: transform 9s cubic-bezier(0.2, 1, 0.5, 1);
+        }
+
+        .locked-item {
+            opacity: 0.6;
+        }
+
+        .locked-item::after {
+            content: '🔒';
+            position: absolute;
+            top: 6px;
+            right: 8px;
+            font-size: 1rem;
+            text-shadow: 0 0 5px black;
+            z-index: 10;
+        }
+
+        .nav-link.active {
+            background-color: var(--col-green);
+            color: var(--text-light);
+        }
+
+        .sharp-panel,
+        .sharp-item,
+        .sharp-btn {
+            border-radius: 0.375rem;
+        }
+
+        .inventory-item.selected {
+            box-shadow: inset 0 0 0 3px var(--col-green);
+        }
+
+        @keyframes background-pan {
+            from {
+                background-position: 0% center;
+            }
+
+            to {
+                background-position: -200% center;
+            }
+        }
+
+        .glistening-text {
+            background: linear-gradient(90deg, #f0f0ff, #ffffff, #a3c2ff, #f0f0ff, #ffccff);
+            background-size: 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: background-pan 2.5s linear infinite;
+            font-weight: 800;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+        }
+
+        @keyframes plus-one-anim {
+            0% {
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(-50%, -40px);
+                opacity: 0;
+            }
+        }
+
+        .plus-one-popup {
+            position: absolute;
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #d1d5db;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+            pointer-events: none;
+            z-index: 50;
+            animation: plus-one-anim 1.2s ease-out forwards;
+        }
+
+        #custom-modal {
+            transition: opacity 0.2s ease-in-out;
+        }
+
+        #custom-modal>div {
+            transition: transform 0.2s ease-in-out;
+        }
+
+        #custom-modal.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #custom-modal.hidden>div {
+            transform: scale(0.95);
+        }
+
+        .item-dropdown-content {
+            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+
+        .inventory-item.active .item-dropdown-content {
+            max-height: 100px;
+            opacity: 1;
+        }
+
+        .inventory-item {
+            transition: transform 0.4s ease-in-out, box-shadow 0.2s;
+        }
+
+        @keyframes reel-win-anim {
+
+            0%,
+            100% {
+                transform: scale(1);
+                box-shadow: inset 0 0 0 0 var(--win-color);
+            }
+
+            50% {
+                transform: scale(1.1);
+                box-shadow: inset 0 0 15px 5px var(--win-color);
+            }
+        }
+
+        .reel-win {
+            animation: reel-win-anim 0.6s ease-in-out;
+            z-index: 20;
+        }
+
+        @keyframes reel-win-rainbow {
+            0% {
+                box-shadow: inset 0 0 15px 5px #ff0000;
+            }
+
+            14% {
+                box-shadow: inset 0 0 15px 5px #ff7f00;
+            }
+
+            28% {
+                box-shadow: inset 0 0 15px 5px #ffff00;
+            }
+
+            42% {
+                box-shadow: inset 0 0 15px 5px #00ff00;
+            }
+
+            57% {
+                box-shadow: inset 0 0 15px 5px #0000ff;
+            }
+
+            71% {
+                box-shadow: inset 0 0 15px 5px #4b0082;
+            }
+
+            85% {
+                box-shadow: inset 0 0 15px 5px #9400d3;
+            }
+
+            100% {
+                box-shadow: inset 0 0 15px 5px #ff0000;
+            }
+        }
+
+        .reel-win-prefixed {
+            animation: reel-win-anim 0.4s ease-in-out, reel-win-rainbow 1.2s linear infinite;
+        }
+
+        /* Custom Scrollbar */
+        #inventory-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #inventory-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #inventory-list::-webkit-scrollbar-thumb {
+            background-color: #4b5563;
+            border-radius: 20px;
+            border: 3px solid transparent;
+            background-clip: content-box;
+        }
+
+        #inventory-list {
+            scrollbar-width: thin;
+            scrollbar-color: #4b5563 transparent;
+        }
+
+        /* Tooltip */
+        .item-tooltip {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #111827;
+            color: #d1d5db;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .tooltip-top {
+            bottom: 110%;
+        }
+
+        .tooltip-bottom {
+            top: 110%;
+        }
+    </style>
+</head>
+
+<body class="bg-[#141619] text-[#B3B4BD]">
+
+    <div id="modal"
+        class="hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4">
+        <div class="bg-[#2C2E3A] sharp-panel p-6 shadow-lg border border-gray-700 max-w-sm w-full">
+            <h3 id="modal-title" class="text-xl font-bold text-white mb-4">Confirm Action</h3>
+            <p id="modal-text" class="text-[#B3B4BD] mb-6">Are you sure?</p>
+            <div class="flex justify-end space-x-4">
+                <button id="modal-cancel"
+                    class="sharp-btn px-6 py-2 bg-gray-600 hover:bg-gray-500 font-semibold transition-colors">Cancel</button>
+                <button id="modal-confirm"
+                    class="sharp-btn px-6 py-2 bg-red-600 hover:bg-red-700 font-semibold text-white transition-colors">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="flex flex-col h-screen">
+        <nav class="bg-[#2C2E3A] shadow-lg border-b border-black/20">
+            <div class="mx-auto px-4">
+                <div class="flex justify-between h-16">
+                    <div class="flex items-center"><span class="text-2xl font-extrabold text-white">Ore Collector</span>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        <a href="#" id="nav-home"
+                            class="nav-link sharp-btn px-3 py-2 text-sm font-medium hover:bg-green-600/50 transition-colors">Home</a>
+                        <a href="#" id="nav-shop"
+                            class="nav-link sharp-btn px-3 py-2 text-sm font-medium hover:bg-green-600/50 transition-colors">Shop</a>
+                        <div id="settings-dropdown" class="relative">
+                            <button id="settings-button"
+                                class="sharp-btn px-3 py-2 text-sm font-medium hover:bg-green-600/50 flex items-center transition-colors">Settings</button>
+                            <div id="settings-dropdown-content"
+                                class="hidden absolute right-0 mt-2 w-48 bg-[#2C2E3A] sharp-panel shadow-lg z-20 border border-black/20">
+                                <div class="py-1">
+                                    <a href="#" id="setting-autosort"
+                                        class="flex justify-between items-center w-full text-left px-4 py-2 text-sm hover:bg-green-600/50 transition-colors"><span>Auto-Sort Debug</span><span
+                                            id="autosort-indicator" class="text-white"></span></a>
+                                    <a href="#" id="setting-reset"
+                                        class="block px-4 py-2 text-sm text-[color:var(--col-red)] hover:bg-red-500 hover:text-white transition-colors">Reset
+                                        Data</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        </nav>
+
+        <div class="flex flex-1 overflow-hidden">
+            <aside class="w-72 md:w-96 bg-[#2C2E3A] p-4 flex flex-col space-y-4 border-r border-black/20">
+                <div class="flex items-center justify-between bg-black/20 sharp-panel p-3">
+                    <h2 class="text-lg font-bold text-white">Balance:</h2>
+                    <span id="money-display" class="text-xl font-semibold" style="color: var(--col-green);">$0</span>
+                </div>
+                <div class="flex-1 bg-black/20 sharp-panel p-4 flex flex-col min-h-0">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-700/50 pb-2">
+                        <h2 class="text-xl font-bold text-white">Inventory</h2>
+                        <div class="flex items-center space-x-2">
+                            <button id="select-mode-btn"
+                                class="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 sharp-btn transition-colors">Select</button>
+                            <button id="sort-lo-hi"
+                                class="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 sharp-btn transition-colors">Lo-Hi</button>
+                            <button id="sort-hi-lo"
+                                class="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 sharp-btn transition-colors">Hi-Lo</button>
+                        </div>
+                    </div>
+                    <div id="inventory-list" class="flex-1 overflow-y-auto space-y-2 pr-2 relative"></div>
+                    <div id="inventory-footer"
+                        class="mt-2 pt-2 border-t border-gray-700/50 flex justify-between text-xs text-gray-400">
+                        <span id="inventory-value">Total Value: $0</span>
+                        <span id="inventory-count">Items: 0 / 300</span>
+                    </div>
+                    <button id="sell-selected-btn"
+                        class="hidden mt-4 w-full sharp-btn font-bold py-2 px-4 text-white transition-colors"
+                        style="background-color: var(--col-red);">Sell Selected</button>
+                </div>
+            </aside>
+
+            <main class="flex-1 flex flex-col items-center justify-center p-6 overflow-hidden">
+                <div id="page-home" class="w-full h-full flex flex-col items-center justify-center">
+                    <h1 class="text-4xl font-bold text-white mb-4">Ore Collection 1</h1>
+                    <p class="text-[#B3B4BD] mb-8">Spin to start collecting your ores!</p>
+                    <div class="w-full max-w-4xl relative mb-8">
+                        <div
+                            class="reel-indicator absolute h-full w-1 bg-green-500/50 left-1/2 -ml-0.5 z-10 rounded-full">
+                        </div>
+                        <div id="reel-container"
+                            class="reel-container overflow-hidden w-full h-48 bg-black/20 sharp-panel p-4">
+                            <div id="reel" class="reel flex h-full items-center"></div>
+                        </div>
+                    </div>
+                    <button id="spin-button"
+                        class="bg-[color:var(--col-green)] hover:opacity-90 text-white font-bold py-3 px-10 sharp-btn shadow-lg transition-transform transform hover:scale-105 active:scale-95 text-xl disabled:opacity-50 disabled:cursor-not-allowed">SPIN
+                        ($10)</button>
+                </div>
+                <div id="page-shop"
+                    class="w-full h-full flex-col items-center justify-start hidden overflow-y-auto p-4">
+                    <h1 class="text-4xl font-bold text-white mb-8">Crafting Shop</h1>
+                    <div id="shop-items" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // --- CONSTANTS ---
+        const ITEMS = [
+            { name: 'Stone', rarity: 'common', value: 1 }, { name: 'Coal', rarity: 'common', value: 3 },
+            { name: 'Copper', rarity: 'uncommon', value: 8 }, { name: 'Iron', rarity: 'uncommon', value: 12 }, { name: 'Silver', rarity: 'uncommon', value: 18 },
+            { name: 'Aluminum', rarity: 'rare', value: 25 }, { name: 'Tin', rarity: 'rare', value: 30 }, { name: 'Zinc', rarity: 'rare', value: 35 }, { name: 'Nickel', rarity: 'rare', value: 45 }, { name: 'Lead', rarity: 'rare', value: 55 },
+            { name: 'Chromium', rarity: 'epic', value: 80 }, { name: 'Cobalt', rarity: 'epic', value: 100 }, { name: 'Tungsten', rarity: 'epic', value: 150 }, { name: 'Manganese', rarity: 'epic', value: 180 }, { name: 'Bismuth', rarity: 'epic', value: 220 }, { name: 'Vanadium', rarity: 'epic', value: 250 },
+            { name: 'Platinum', rarity: 'legendary', value: 500 }, { name: 'Titanium', rarity: 'legendary', value: 750 }, { name: 'Uranium', rarity: 'legendary', value: 1200 }, { name: 'Molybdenum', rarity: 'legendary', value: 1800 }, { name: 'Niobium', rarity: 'legendary', value: 2500 },
+            { name: 'Iridium', rarity: 'mythic', value: 5000 }, { name: 'Rhodium', rarity: 'mythic', value: 8000 }, { name: 'Osmium', rarity: 'mythic', value: 12000 }, { name: 'Palladium', rarity: 'mythic', value: 15000 }, { name: 'Neptunium', rarity: 'mythic', value: 25000 }
+        ];
+        const PREFIXES = [{ name: 'Smooth', multiplier: 2 }, { name: 'Shiny', multiplier: 4 }, { name: 'Polished', multiplier: 8 }, { name: 'Crystalline', multiplier: 16 }, { name: 'Iridescent', multiplier: 32 }, { name: 'Pearlescent', multiplier: 64 }, { name: 'Mythic', multiplier: 128 }];
+        const RARITY_DETAILS = {
+            common: { label: 'Common', weight: 0.45, color: '#6b7280', bgColor: 'bg-gray-800' },
+            uncommon: { label: 'Uncommon', weight: 0.25, color: '#22c55e', bgColor: 'bg-green-900' },
+            rare: { label: 'Rare', weight: 0.18, color: '#3b82f6', bgColor: 'bg-blue-900' },
+            epic: { label: 'Epic', weight: 0.08, color: '#a855f7', bgColor: 'bg-purple-900' },
+            legendary: { label: 'Legendary', weight: 0.035, color: '#f59e0b', bgColor: 'bg-amber-800' },
+            mythic: { label: 'Mythic', weight: 0.005, color: '#ec4899', bgColor: 'bg-pink-900' }
+        };
+        const PREFIX_CHANCE = 0.05;
+        const CRAFTABLES = [
+            { id: 'refined_pick', name: 'Refined Pickaxe', description: 'Permanently increases drop luck by 2%.', luckBonus: 0.02, cost: [{ name: 'Iron', amount: 20 }, { name: 'Tungsten', amount: 2 }] },
+            { id: 'gem_polisher', name: 'Gem Polisher', description: 'Permanently increases prefix chance by 1%.', prefixBonus: 0.01, cost: [{ name: 'Platinum', amount: 5 }, { name: 'Iridium', amount: 1 }] }
+        ];
+        const INVENTORY_MAX = 300;
+
+        // --- STATE ---
+        let isSpinning = false, inventory = {}, money = 500, craftedUpgrades = [], discoveredItems = [], luckBonus = 0, prefixBonus = 0, currentSort = 'hi-lo';
+        let settings = { autoSort: true }, selectMode = false, selectedItems = new Set(), modalConfirmCallback = null;
+        let elements = {};
+        let itemCountsPerRarity = {};
+
+        // --- UI & ANIMATION ---
+        function showModal(title, text, onConfirm) {
+            elements.modalTitle.textContent = title;
+            elements.modalText.textContent = text;
+            modalConfirmCallback = onConfirm;
+            elements.modal.classList.remove('hidden');
+        }
+        function hideModal() { elements.modal.classList.add('hidden'); modalConfirmCallback = null; }
+
+        function showPlusOnePopup(itemKey) {
+            const itemEl = document.getElementById(`inv-${itemKey}`);
+            if (!itemEl) return;
+            const popup = document.createElement('div');
+            popup.className = 'plus-one-popup';
+            popup.textContent = '+1';
+            const itemRect = itemEl.getBoundingClientRect();
+            const listRect = elements.inventoryList.getBoundingClientRect();
+            popup.style.top = `${itemRect.top - listRect.top + (itemRect.height / 2)}px`;
+            popup.style.left = `${itemRect.left - listRect.left + (itemRect.width / 2)}px`;
+            elements.inventoryList.appendChild(popup);
+            setTimeout(() => popup.remove(), 1200);
+        }
+
+        // --- CORE LOGIC ---
+        function calculateBonuses() {
+            luckBonus = craftedUpgrades.reduce((total, id) => total + (CRAFTABLES.find(c => c.id === id)?.luckBonus || 0), 0);
+            prefixBonus = craftedUpgrades.reduce((total, id) => total + (CRAFTABLES.find(c => c.id === id)?.prefixBonus || 0), 0);
+        }
+        function generateStackKey(item) { return (item.prefix ? item.prefix.name : 'Normal') + item.name.replace(/\s+/g, ''); }
+        function getWeightedRandomRarity() {
+            const adjustedWeights = JSON.parse(JSON.stringify(RARITY_DETAILS));
+            if (luckBonus > 0) {
+                let bonus = luckBonus * 10;
+                if (adjustedWeights.common.weight > bonus) {
+                    adjustedWeights.common.weight -= bonus;
+                    adjustedWeights.rare.weight += bonus * 0.5;
+                    adjustedWeights.epic.weight += bonus * 0.3;
+                    adjustedWeights.legendary.weight += bonus * 0.15;
+                    adjustedWeights.mythic.weight += bonus * 0.05;
+                }
+            }
+            const rand = Math.random();
+            let cumulativeWeight = 0;
+            for (const rarity in adjustedWeights) {
+                cumulativeWeight += adjustedWeights[rarity].weight;
+                if (rand <= cumulativeWeight) return rarity;
+            }
+            return 'common';
+        }
+
+        function populateReel() {
+            elements.reel.innerHTML = '';
+            for (let i = 0; i < 100; i++) {
+                const chosenRarity = getWeightedRandomRarity();
+                const possibleItems = ITEMS.filter(item => item.rarity === chosenRarity);
+                const itemData = { ...possibleItems[Math.floor(Math.random() * possibleItems.length)] };
+                itemData.prefix = Math.random() < (PREFIX_CHANCE + prefixBonus) ? PREFIXES[Math.floor(Math.random() * PREFIXES.length)] : null;
+                const rarityInfo = RARITY_DETAILS[itemData.rarity];
+
+                const isHighRarity = ['epic', 'legendary', 'mythic'].includes(itemData.rarity);
+                const isDiscovered = discoveredItems.includes(itemData.name);
+                const displayName = isHighRarity && !isDiscovered ? '????' : itemData.name;
+
+                const itemEl = document.createElement('div');
+                itemEl.className = `flex-shrink-0 w-32 h-32 mx-2 sharp-item flex flex-col items-center justify-center p-2 border-b-4 ${rarityInfo.bgColor} shadow-md`;
+                itemEl.style.borderColor = rarityInfo.color;
+                const nameHTML = itemData.prefix
+                    ? `<div class="font-bold text-center text-sm text-white glistening-text">${displayName}</div>`
+                    : `<div class="font-bold text-center text-sm text-white"><span>${displayName}</span></div>`;
+                itemEl.innerHTML = `${nameHTML}<div class="text-xs opacity-75 mt-1">${rarityInfo.label}</div>`;
+                itemEl.dataset.item = JSON.stringify(itemData);
+                elements.reel.appendChild(itemEl);
+            }
+        }
+
+        function handleSpin() {
+            if (isSpinning || money < 10) return;
+            isSpinning = true;
+            money -= 10;
+            updateMoneyDisplay();
+            elements.spinButton.disabled = true;
+
+            populateReel();
+            elements.reel.style.transition = 'none';
+            elements.reel.style.transform = 'translateX(0)';
+            elements.reel.offsetHeight;
+            const winningIndex = 80 + Math.floor(Math.random() * 15);
+            const winningItemEl = elements.reel.children[winningIndex];
+            const containerWidth = elements.reelContainer.offsetWidth;
+            const finalTransform = - (winningItemEl.offsetLeft - (containerWidth / 2) + (winningItemEl.offsetWidth / 2) + (Math.random() - 0.5) * (winningItemEl.offsetWidth * 0.6));
+            elements.reel.style.transition = 'transform 9s cubic-bezier(0.2, 1, 0.5, 1)';
+            elements.reel.style.transform = `translateX(${finalTransform}px)`;
+
+            elements.reel.addEventListener('transitionend', () => {
+                const wonItem = JSON.parse(winningItemEl.dataset.item);
+
+                // Reveal animation
+                const nameEl = winningItemEl.querySelector('.font-bold');
+                if (nameEl.textContent === '????') {
+                    nameEl.textContent = wonItem.name;
+                }
+                if (wonItem.prefix) {
+                    winningItemEl.classList.add('reel-win-prefixed');
+                } else {
+                    winningItemEl.style.setProperty('--win-color', RARITY_DETAILS[wonItem.rarity].color);
+                    winningItemEl.classList.add('reel-win');
+                }
+
+                if (!discoveredItems.includes(wonItem.name)) {
+                    discoveredItems.push(wonItem.name);
+                }
+
+                const key = generateStackKey(wonItem);
+                const isNewStack = !inventory[key];
+                if (isNewStack) {
+                    const value = wonItem.value;
+                    const finalValue = wonItem.prefix ? Math.max(value, Math.round((value === 1 ? value + 1 : value) * wonItem.prefix.multiplier)) : value;
+                    inventory[key] = { name: wonItem.name, prefix: wonItem.prefix, finalValue, locked: false, quantity: 1 };
+                } else {
+                    inventory[key].quantity++;
+                }
+
+                if (settings.autoSort || isNewStack) updateInventoryDisplay();
+                else {
+                    const itemEl = document.getElementById(`inv-${key}`);
+                    if (itemEl) itemEl.querySelector('.item-count').textContent = `x${inventory[key].quantity}`;
+                }
+
+                setTimeout(() => showPlusOnePopup(key), 400);
+                saveState();
+
+                setTimeout(() => {
+                    isSpinning = false;
+                    updateSpinButtonState();
+                    winningItemEl.classList.remove('reel-win', 'reel-win-prefixed');
+                }, 600);
+            }, { once: true });
+        }
+
+        function updateMoneyDisplay() {
+            elements.moneyDisplay.textContent = `$${money.toLocaleString()}`;
+            updateSpinButtonState();
+        }
+
+        function updateSpinButtonState() {
+            elements.spinButton.disabled = money < 10;
+        }
+
+        function updateInventoryDisplay() {
+            const invList = elements.inventoryList;
+            const oldPositions = {};
+            Array.from(invList.children).forEach(child => { if (child.id) oldPositions[child.id] = child.getBoundingClientRect(); });
+            const fragment = document.createDocumentFragment();
+            const sortedInventory = Object.entries(inventory).sort(([, a], [, b]) => currentSort === 'hi-lo' ? b.finalValue - a.finalValue : a.finalValue - b.finalValue);
+            if (sortedInventory.length === 0) {
+                invList.innerHTML = `<p class="text-[#B3B4BD]">Spin the reel to get items!</p>`;
+                updateInventoryFooter();
+                return;
+            }
+
+            sortedInventory.forEach(([key, item]) => {
+                const itemData = ITEMS.find(i => i.name === item.name);
+                const rarityInfo = RARITY_DETAILS[itemData.rarity];
+                const isPrefixed = item.prefix !== null;
+                const chanceDenominator = 1 / ((rarityInfo.weight / itemCountsPerRarity[itemData.rarity]) * (isPrefixed ? (PREFIX_CHANCE / PREFIXES.length) : (1 - PREFIX_CHANCE)));
+                const chanceText = `1 in ${Math.round(chanceDenominator).toLocaleString()}`;
+                const itemEl = document.createElement('div');
+                itemEl.id = `inv-${key}`;
+                itemEl.dataset.key = key;
+                itemEl.dataset.chance = chanceText;
+                itemEl.className = `inventory-item relative sharp-item p-2 border-l-4 transition-shadow duration-150 ${rarityInfo.bgColor} ${item.locked ? 'locked-item' : ''} ${selectMode && selectedItems.has(key) ? 'selected' : ''}`;
+                itemEl.style.borderColor = rarityInfo.color;
+                const prefixHTML = isPrefixed ? `<span class="glistening-text">${item.prefix.name}&nbsp;</span>` : '';
+                let dropdownHTML = `<div class="item-dropdown-content mt-2 pt-2 border-t border-gray-700/50 space-y-1"><button class="sell-btn w-full text-left text-sm p-1 rounded hover:bg-red-500 hover:text-white" style="color:var(--col-red)" data-key="${key}">Sell 1</button>${item.quantity > 1 ? `<button class="sell-all-btn w-full text-left text-sm p-1 rounded hover:bg-red-500 hover:text-white" style="color:var(--col-red)" data-key="${key}">Sell All (${item.quantity})</button>` : ''}<button class="lock-btn w-full text-left text-sm text-yellow-400 hover:bg-yellow-500 hover:text-white p-1 rounded" data-key="${key}">${item.locked ? 'Unlock' : 'Lock'}</button></div>`;
+                itemEl.innerHTML = `<div class="item-header flex items-center justify-between cursor-pointer relative"><div class="flex-grow flex items-baseline"><span class="font-semibold text-sm text-white">${prefixHTML}${item.name}</span><span class="text-xs text-gray-400 ml-2">$${item.finalValue.toLocaleString()}</span></div><span class="item-count bg-black/50 text-white text-xs font-bold px-2 py-1 rounded-full mr-2">x${item.quantity}</span>${!selectMode ? `<span class="text-white text-xs font-bold">&#9662;</span>` : ''}</div>${!selectMode ? dropdownHTML : ''}`;
+                fragment.appendChild(itemEl);
+            });
+            invList.innerHTML = '';
+            invList.appendChild(fragment);
+            Array.from(invList.children).forEach(child => {
+                const oldPos = oldPositions[child.id];
+                if (!oldPos) return;
+                const newPos = child.getBoundingClientRect();
+                const deltaX = oldPos.left - newPos.left;
+                const deltaY = oldPos.top - newPos.top;
+                if (Math.abs(deltaX) > 0.1 || Math.abs(deltaY) > 0.1) {
+                    child.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+                    child.style.transition = 'transform 0s';
+                    requestAnimationFrame(() => {
+                        child.style.transition = 'transform 0.4s ease-in-out';
+                        child.style.transform = '';
+                    });
+                }
+            });
+            updateInventoryFooter();
+        }
+
+        function updateInventoryFooter() {
+            let totalValue = 0;
+            let totalCount = 0;
+            for (const key in inventory) {
+                const stack = inventory[key];
+                totalValue += stack.finalValue * stack.quantity;
+                totalCount += stack.quantity;
+            }
+            elements.inventoryValue.textContent = `Total Value: $${totalValue.toLocaleString()}`;
+            elements.inventoryCount.textContent = `Items: ${totalCount} / ${INVENTORY_MAX}`;
+        }
+
+        function renderShop() {
+            elements.shopItems.innerHTML = '';
+            CRAFTABLES.forEach(craftable => {
+                const hasBeenCrafted = craftedUpgrades.includes(craftable.id);
+                let canAfford = true;
+                const costHtml = craftable.cost.map(req => {
+                    const ownedAmount = Object.values(inventory).filter(s => s.name === req.name && !s.locked).reduce((sum, s) => sum + s.quantity, 0);
+                    if (ownedAmount < req.amount) canAfford = false;
+                    const color = ownedAmount >= req.amount ? 'text-[color:var(--col-green)]' : 'text-[color:var(--col-red)]';
+                    return `<span class="${color}">${req.amount}x ${req.name}</span>`;
+                }).join(', ');
+
+                const craftEl = document.createElement('div');
+                craftEl.className = `bg-[#141619] p-6 sharp-panel shadow-lg flex flex-col border border-black/50 ${hasBeenCrafted ? 'opacity-50' : ''}`;
+                craftEl.innerHTML = `
+                <h3 class="text-xl font-bold text-white">${craftable.name}</h3>
+                <p class="text-[#B3B4BD] mt-2 flex-grow">${craftable.description}</p>
+                <div class="mt-4"><p class="font-semibold">Cost:</p><p class="text-sm">${costHtml}</p></div>
+                <button data-id="${craftable.id}" class="craft-btn mt-6 w-full sharp-btn font-bold py-2 px-4 text-white transition-colors ${hasBeenCrafted ? 'bg-[color:var(--col-green)] cursor-not-allowed' : (canAfford ? 'bg-[color:var(--col-green)] hover:opacity-90' : 'bg-[color:var(--col-red)] cursor-not-allowed')}">
+                    ${hasBeenCrafted ? 'CRAFTED' : 'CRAFT'}
+                </button>`;
+                elements.shopItems.appendChild(craftEl);
+            });
+        }
+
+        function switchPage(page) {
+            elements.pageHome.classList.toggle('hidden', page !== 'home');
+            elements.pageShop.classList.toggle('hidden', page !== 'shop');
+            elements.navHome.classList.toggle('active', page === 'home');
+            elements.navShop.classList.toggle('active', page === 'shop');
+            if (page === 'shop') renderShop();
+        }
+
+        function craftItem(craftableId) {
+            if (craftedUpgrades.includes(craftableId)) return;
+            const craftable = CRAFTABLES.find(c => c.id === craftableId);
+            if (!craftable) return;
+            let canCraft = true;
+            const itemsToConsume = {};
+            for (const req of craftable.cost) {
+                let foundAmount = 0;
+                const availableStacks = Object.values(inventory).filter(s => s.name === req.name && !s.locked);
+                for (const stack of availableStacks) {
+                    const amountToTake = Math.min(stack.quantity, req.amount - foundAmount);
+                    if (amountToTake > 0) {
+                        const key = generateStackKey(stack);
+                        itemsToConsume[key] = (itemsToConsume[key] || 0) + amountToTake;
+                        foundAmount += amountToTake;
+                    }
+                    if (foundAmount >= req.amount) break;
+                }
+                if (foundAmount < req.amount) { canCraft = false; break; }
+            }
+
+            if (canCraft) {
+                for (const key in itemsToConsume) {
+                    inventory[key].quantity -= itemsToConsume[key];
+                    if (inventory[key].quantity <= 0) delete inventory[key];
+                }
+                craftedUpgrades.push(craftable.id);
+                calculateBonuses();
+                showModal("Success!", `You crafted a ${craftable.name}!`, hideModal);
+                saveState();
+                renderShop();
+                updateInventoryDisplay();
+            } else {
+                showModal("Materials Needed", "You don't have the required materials.", hideModal);
+            }
+        }
+
+        function saveState() { localStorage.setItem('oreSpinnerSave', JSON.stringify({ inventory, money, craftedUpgrades, discoveredItems, settings })); }
+        function loadState() {
+            const state = JSON.parse(localStorage.getItem('oreSpinnerSave'));
+            if (state) {
+                inventory = state.inventory || {};
+                money = state.money !== undefined ? state.money : 500;
+                craftedUpgrades = state.craftedUpgrades || [];
+                discoveredItems = state.discoveredItems || [];
+                settings = state.settings || { autoSort: true };
+            }
+        }
+
+        function init() {
+            const elementIds = ['reel', 'reel-container', 'spin-button', 'inventory-list', 'money-display', 'page-home', 'page-shop', 'shop-items', 'select-mode-btn', 'sell-selected-btn', 'modal', 'modal-title', 'modal-text', 'modal-confirm', 'modal-cancel', 'nav-home', 'nav-shop', 'inventory-value', 'inventory-count'];
+            elementIds.forEach(id => {
+                const camelCaseId = id.replace(/-./g, x => x[1].toUpperCase());
+                elements[camelCaseId] = document.getElementById(id);
+            });
+
+            // Pre-calculate item counts for chance calculation
+            for (const rarity in RARITY_DETAILS) {
+                itemCountsPerRarity[rarity] = ITEMS.filter(item => item.rarity === rarity).length;
+            }
+
+            loadState();
+            calculateBonuses();
+            switchPage('home');
+            populateReel();
+            updateMoneyDisplay();
+            updateInventoryDisplay();
+
+            elements.navHome.addEventListener('click', (e) => { e.preventDefault(); switchPage('home'); });
+            elements.navShop.addEventListener('click', (e) => { e.preventDefault(); switchPage('shop'); });
+            elements.spinButton.addEventListener('click', handleSpin);
+
+            elements.selectModeBtn.addEventListener('click', () => {
+                selectMode = !selectMode;
+                elements.selectModeBtn.classList.toggle('bg-[color:var(--col-green)]', selectMode);
+                elements.selectModeBtn.classList.toggle('bg-gray-700', !selectMode);
+                elements.sellSelectedBtn.classList.toggle('hidden', !selectMode);
+                selectedItems.clear(); updateInventoryDisplay();
+            });
+
+            elements.sellSelectedBtn.addEventListener('click', () => {
+                if (selectedItems.size === 0) return;
+                let totalValue = 0, itemCount = 0;
+                selectedItems.forEach(key => {
+                    const stack = inventory[key];
+                    if (stack && !stack.locked) { totalValue += stack.finalValue * stack.quantity; itemCount += stack.quantity; }
+                });
+                showModal("Sell Selected Items", `Sell ${itemCount} items across ${selectedItems.size} stacks for $${totalValue.toLocaleString()}?`, () => {
+                    selectedItems.forEach(key => {
+                        const stack = inventory[key];
+                        if (stack && !stack.locked) { money += stack.finalValue * stack.quantity; delete inventory[key]; }
+                    });
+                    selectedItems.clear();
+                    updateMoneyDisplay();
+                    updateInventoryDisplay(); hideModal(); saveState();
+                });
+            });
+
+            document.getElementById('sort-lo-hi').addEventListener('click', () => { currentSort = 'lo-hi'; updateInventoryDisplay(); });
+            document.getElementById('sort-hi-lo').addEventListener('click', () => { currentSort = 'hi-lo'; updateInventoryDisplay(); });
+
+            const settingsButton = document.getElementById('settings-button'), settingsDropdownContent = document.getElementById('settings-dropdown-content');
+            settingsButton.addEventListener('click', e => { e.stopPropagation(); settingsDropdownContent.classList.toggle('hidden'); });
+            window.addEventListener('click', () => { if (!settingsDropdownContent.classList.contains('hidden')) settingsDropdownContent.classList.add('hidden'); });
+            document.getElementById('setting-reset').addEventListener('click', () => showModal("Reset Data", "All progress will be lost permanently.", () => { localStorage.removeItem('oreSpinnerSave'); window.location.reload(); }));
+
+            elements.inventoryList.addEventListener('click', e => {
+                const itemEl = e.target.closest('.inventory-item');
+                if (!itemEl) return;
+                const key = itemEl.dataset.key;
+                const stack = inventory[key];
+                if (!stack) return;
+
+                if (selectMode) {
+                    if (stack.locked) return;
+                    selectedItems.has(key) ? selectedItems.delete(key) : selectedItems.add(key);
+                    itemEl.classList.toggle('selected');
+                } else {
+                    if (e.target.closest('.item-header')) {
+                        const currentlyActive = document.querySelector('.inventory-item.active');
+                        if (currentlyActive && currentlyActive !== itemEl) currentlyActive.classList.remove('active');
+                        itemEl.classList.toggle('active');
+                        const existingTooltip = itemEl.querySelector('.item-tooltip');
+                        if (existingTooltip) existingTooltip.remove();
+                    } else if (e.target.closest('.sell-btn')) {
+                        money += stack.finalValue;
+                        stack.quantity--;
+                        if (stack.quantity <= 0) delete inventory[key];
+                        updateInventoryDisplay();
+                    } else if (e.target.closest('.sell-all-btn')) {
+                        money += stack.finalValue * stack.quantity;
+                        delete inventory[key];
+                        updateInventoryDisplay();
+                    } else if (e.target.closest('.lock-btn')) {
+                        stack.locked = !stack.locked;
+                        updateInventoryDisplay();
+                    }
+                    updateMoneyDisplay();
+                    saveState();
+                }
+            });
+
+            elements.inventoryList.addEventListener('mouseover', e => {
+                const itemEl = e.target.closest('.inventory-item');
+                if (itemEl && !itemEl.classList.contains('active') && !selectMode) {
+                    if (itemEl.querySelector('.item-tooltip')) return;
+                    const tooltip = document.createElement('div');
+                    const itemRect = itemEl.getBoundingClientRect();
+                    const listRect = elements.inventoryList.getBoundingClientRect();
+                    if (itemRect.top < listRect.top + 50) {
+                        tooltip.className = 'item-tooltip tooltip-bottom';
+                    } else {
+                        tooltip.className = 'item-tooltip tooltip-top';
+                    }
+                    tooltip.textContent = `Chance: ${itemEl.dataset.chance}`;
+                    itemEl.appendChild(tooltip);
+                    requestAnimationFrame(() => {
+                        tooltip.style.opacity = 1;
+                    });
+                }
+            });
+
+            elements.inventoryList.addEventListener('mouseout', e => {
+                const itemEl = e.target.closest('.inventory-item');
+                if (itemEl) {
+                    const tooltip = itemEl.querySelector('.item-tooltip');
+                    if (tooltip) tooltip.remove();
+                }
+            });
+
+            elements.shopItems.addEventListener('click', e => {
+                const button = e.target.closest('.craft-btn');
+                if (button && !button.classList.contains('cursor-not-allowed')) craftItem(button.dataset.id);
+            });
+
+            elements.modalCancel.addEventListener('click', hideModal);
+            elements.modalConfirm.addEventListener('click', () => { if (modalConfirmCallback) modalConfirmCallback(); });
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+
+</html>
