@@ -377,19 +377,31 @@
         // --- CONSTANTS ---
         const ITEMS = [
             { name: 'Stone', rarity: 'common', value: 1 }, { name: 'Coal', rarity: 'common', value: 3 },
+            { name: 'Limestone', rarity: 'common', value: 2 },
+
             { name: 'Copper', rarity: 'uncommon', value: 8 }, { name: 'Iron', rarity: 'uncommon', value: 12 },
-            { name: 'Silver', rarity: 'uncommon', value: 18 }, { name: 'Aluminum', rarity: 'rare', value: 25 },
-            { name: 'Tin', rarity: 'rare', value: 30 }, { name: 'Zinc', rarity: 'rare', value: 35 },
+            { name: 'Silver', rarity: 'uncommon', value: 16 }, { name: 'Nickel', rarity: 'uncommon', value: 18},
+            { name: 'Quartz', rarity: 'uncommon', value: 22 }, { name: 'Gypsum', rarity: 'uncommon', value: 25 },
+            
+            { name: 'Aluminum', rarity: 'rare', value: 30 },
+            { name: 'Tin', rarity: 'rare', value: 35 }, { name: 'Zinc', rarity: 'rare', value: 40 },
             { name: 'Nickel', rarity: 'rare', value: 45 }, { name: 'Lead', rarity: 'rare', value: 55 },
-            { name: 'Chromium', rarity: 'epic', value: 80 }, { name: 'Cobalt', rarity: 'epic', value: 100 },
+            { name: 'Graphite', rarity: 'rare', value: 65 },
+            
+            { name: 'Chromium', rarity: 'epic', value: 95 }, { name: 'Cobalt', rarity: 'epic', value: 100 },
             { name: 'Tungsten', rarity: 'epic', value: 150 }, { name: 'Manganese', rarity: 'epic', value: 180 },
             { name: 'Bismuth', rarity: 'epic', value: 220 }, { name: 'Vanadium', rarity: 'epic', value: 250 },
+            
             { name: 'Platinum', rarity: 'legendary', value: 500 }, { name: 'Titanium', rarity: 'legendary', value: 750 },
             { name: 'Uranium', rarity: 'legendary', value: 1200 }, { name: 'Molybdenum', rarity: 'legendary', value: 1800 },
-            { name: 'Niobium', rarity: 'legendary', value: 2500 }, { name: 'Iridium', rarity: 'mythic', value: 5000 },
-            { name: 'Rhodium', rarity: 'mythic', value: 8000 }, { name: 'Osmium', rarity: 'mythic', value: 12000 },
-            { name: 'Palladium', rarity: 'mythic', value: 15000 }, { name: 'Neptunium', rarity: 'mythic', value: 45000 },
-            { name: 'Chronocrystal', rarity: 'celestial', value: 1250000 }, { name: 'Voidstone', rarity: 'celestial', value: 2500000 }
+            { name: 'Niobium', rarity: 'legendary', value: 2500 }, 
+            
+            { name: 'Iridium', rarity: 'mythic', value: 5000 }, { name: 'Rhodium', rarity: 'mythic', value: 8000 }, 
+            { name: 'Osmium', rarity: 'mythic', value: 12000 }, { name: 'Palladium', rarity: 'mythic', value: 15000 }, 
+            { name: 'Neptunium', rarity: 'mythic', value: 45000 },
+
+            { name: 'Chronocrystal', rarity: 'celestial', value: 1250000 }, 
+            { name: 'Voidstone', rarity: 'celestial', value: 2500000 }
         ];
         const PREFIXES = [{ name: 'Smooth', multiplier: 2 }, { name: 'Shiny', multiplier: 4 }, { name: 'Polished', multiplier: 8 }, { name: 'Crystalline', multiplier: 16 }, { name: 'Iridescent', multiplier: 32 }, { name: 'Pearlescent', multiplier: 64 }, { name: 'Stellar', multiplier: 128 }];
         const RARITY_DETAILS = {
