@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ore Collector v0.1.2</title>
+    <title>Ore Collector v0.1.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -377,25 +377,38 @@
         // --- CONSTANTS ---
         const ITEMS = [
             { name: 'Stone', rarity: 'common', value: 1 }, { name: 'Coal', rarity: 'common', value: 3 },
-            { name: 'Copper', rarity: 'uncommon', value: 8 }, { name: 'Iron', rarity: 'uncommon', value: 12 }, { name: 'Silver', rarity: 'uncommon', value: 18 },
-            { name: 'Aluminum', rarity: 'rare', value: 25 }, { name: 'Tin', rarity: 'rare', value: 30 }, { name: 'Zinc', rarity: 'rare', value: 35 }, { name: 'Nickel', rarity: 'rare', value: 45 }, { name: 'Lead', rarity: 'rare', value: 55 },
-            { name: 'Chromium', rarity: 'epic', value: 80 }, { name: 'Cobalt', rarity: 'epic', value: 100 }, { name: 'Tungsten', rarity: 'epic', value: 150 }, { name: 'Manganese', rarity: 'epic', value: 180 }, { name: 'Bismuth', rarity: 'epic', value: 220 }, { name: 'Vanadium', rarity: 'epic', value: 250 },
-            { name: 'Platinum', rarity: 'legendary', value: 500 }, { name: 'Titanium', rarity: 'legendary', value: 750 }, { name: 'Uranium', rarity: 'legendary', value: 1200 }, { name: 'Molybdenum', rarity: 'legendary', value: 1800 }, { name: 'Niobium', rarity: 'legendary', value: 2500 },
-            { name: 'Iridium', rarity: 'mythic', value: 5000 }, { name: 'Rhodium', rarity: 'mythic', value: 8000 }, { name: 'Osmium', rarity: 'mythic', value: 12000 }, { name: 'Palladium', rarity: 'mythic', value: 15000 }, { name: 'Neptunium', rarity: 'mythic', value: 45000 }
+            { name: 'Copper', rarity: 'uncommon', value: 8 }, { name: 'Iron', rarity: 'uncommon', value: 12 },
+            { name: 'Silver', rarity: 'uncommon', value: 18 }, { name: 'Aluminum', rarity: 'rare', value: 25 },
+            { name: 'Tin', rarity: 'rare', value: 30 }, { name: 'Zinc', rarity: 'rare', value: 35 },
+            { name: 'Nickel', rarity: 'rare', value: 45 }, { name: 'Lead', rarity: 'rare', value: 55 },
+            { name: 'Chromium', rarity: 'epic', value: 80 }, { name: 'Cobalt', rarity: 'epic', value: 100 },
+            { name: 'Tungsten', rarity: 'epic', value: 150 }, { name: 'Manganese', rarity: 'epic', value: 180 },
+            { name: 'Bismuth', rarity: 'epic', value: 220 }, { name: 'Vanadium', rarity: 'epic', value: 250 },
+            { name: 'Platinum', rarity: 'legendary', value: 500 }, { name: 'Titanium', rarity: 'legendary', value: 750 },
+            { name: 'Uranium', rarity: 'legendary', value: 1200 }, { name: 'Molybdenum', rarity: 'legendary', value: 1800 },
+            { name: 'Niobium', rarity: 'legendary', value: 2500 }, { name: 'Iridium', rarity: 'mythic', value: 5000 },
+            { name: 'Rhodium', rarity: 'mythic', value: 8000 }, { name: 'Osmium', rarity: 'mythic', value: 12000 },
+            { name: 'Palladium', rarity: 'mythic', value: 15000 }, { name: 'Neptunium', rarity: 'mythic', value: 45000 },
+            { name: 'Chronocrystal', rarity: 'celestial', value: 1250000 }, { name: 'Voidstone', rarity: 'celestial', value: 2500000 }
         ];
         const PREFIXES = [{ name: 'Smooth', multiplier: 2 }, { name: 'Shiny', multiplier: 4 }, { name: 'Polished', multiplier: 8 }, { name: 'Crystalline', multiplier: 16 }, { name: 'Iridescent', multiplier: 32 }, { name: 'Pearlescent', multiplier: 64 }, { name: 'Stellar', multiplier: 128 }];
         const RARITY_DETAILS = {
-            common: { label: 'Common', weight: 0.475, color: '#6b7280', bgColor: 'bg-gray-800' },
+            common: { label: 'Common', weight: 0.4749, color: '#6b7280', bgColor: 'bg-gray-800' },
             uncommon: { label: 'Uncommon', weight: 0.2635, color: '#22c55e', bgColor: 'bg-green-900' },
             rare: { label: 'Rare', weight: 0.190, color: '#3b82f6', bgColor: 'bg-blue-900' },
             epic: { label: 'Epic', weight: 0.053, color: '#a855f7', bgColor: 'bg-purple-900' },
             legendary: { label: 'Legendary', weight: 0.0175, color: '#f59e0b', bgColor: 'bg-amber-800' },
-            mythic: { label: 'Mythic', weight: 0.001, color: '#ec4899', bgColor: 'bg-pink-900' }
+            mythic: { label: 'Mythic', weight: 0.001, color: '#ec4899', bgColor: 'bg-pink-900' },
+            celestial: { label: 'Celestial', weight: 0.0001, color: '#631212', bgColor: 'bg-red-900' }
         };
         const PREFIX_CHANCE = 0.05;
         const CRAFTABLES = [
-            { id: 'refined_pick', name: 'Refined Pickaxe', description: 'Permanently increases drop luck by 2%.', luckBonus: 0.02, cost: [{ name: 'Iron', amount: 20 }, { name: 'Tungsten', amount: 2 }] },
-            { id: 'gem_polisher', name: 'Gem Polisher', description: 'Permanently increases prefix chance by 1%.', prefixBonus: 0.01, cost: [{ name: 'Platinum', amount: 5 }, { name: 'Iridium', amount: 1 }] }
+            { id: 'refined_pick', name: 'Refined Pickaxe', description: 'Permanently increases drop luck by <b>1%.</b>', luckBonus: 0.01, cost: [{ name: 'Iron', amount: 20 }, { name: 'Tungsten', amount: 2 }] },
+            { id: 'advanced_pick', name: 'Advanced Pickaxe', description: 'Permanently increases drop luck by <b>3%.</b>', luckBonus: 0.03, cost: [{ name: 'Platinum', amount: 10 }, { name: 'Iridium', amount: 2 }] },
+            { id: 'ore_drill', name: 'Ore Drill', description: 'Permanently increases drop luck by <b>5%.</b>', luckBonus: 0.05, cost: [{ name: 'Osmium', amount: 5 }, { name: 'Palladium', amount: 2 }] },
+            { id: 'gem_polisher', name: 'Gem Polisher', description: 'Permanently increases prefix chance by <b>1%.</b>', prefixBonus: 0.01, cost: [{ name: 'Vanadium', amount: 5 }, { name: 'Titanium', amount: 1 }] },
+            { id: 'gem_infuser', name: 'Gem Infuser', description: 'Permanently increases prefix chance by <b>3%.</b>', prefixBonus: 0.03, cost: [{ name: 'Bismuth', amount: 15 }, { name: 'Niobium', amount: 3 }, { name: 'Iridium', amount: 1 }] },
+            { id: 'gem_perfector', name: 'Gem Perfector', description: 'Permanently increases prefix chance by <b>5%.</b>', prefixBonus: 0.05, cost: [{ name: 'Rhodium', amount: 3 }, { name: 'Neptunium', amount: 1 }] }
         ];
         const INVENTORY_MAX = 300;
 
@@ -437,15 +450,22 @@
         function getWeightedRandomRarity() {
             const adjustedWeights = JSON.parse(JSON.stringify(RARITY_DETAILS));
             if (luckBonus > 0) {
-                let bonus = luckBonus * 10;
-                if (adjustedWeights.common.weight > bonus) {
-                    adjustedWeights.common.weight -= bonus;
-                    adjustedWeights.rare.weight += bonus * 0.5;
-                    adjustedWeights.epic.weight += bonus * 0.3;
-                    adjustedWeights.legendary.weight += bonus * 0.15;
-                    adjustedWeights.mythic.weight += bonus * 0.05;
+                let potentialBonus = luckBonus * 10;
+
+                let actualBonusToDistribute = Math.min(potentialBonus, adjustedWeights.common.weight * 0.95);
+
+                if (actualBonusToDistribute > 0) {
+                    adjustedWeights.common.weight -= actualBonusToDistribute;
+                    adjustedWeights.rare.weight += actualBonusToDistribute * 0.40;
+                    adjustedWeights.epic.weight += actualBonusToDistribute * 0.30;
+                    adjustedWeights.legendary.weight += actualBonusToDistribute * 0.20;
+                    adjustedWeights.mythic.weight += actualBonusToDistribute * 0.09;
+                    if (adjustedWeights.celestial) {
+                        adjustedWeights.celestial.weight += actualBonusToDistribute * 0.01;
+                    }
                 }
             }
+
             const rand = Math.random();
             let cumulativeWeight = 0;
             for (const rarity in adjustedWeights) {
@@ -461,20 +481,33 @@
                 const chosenRarity = getWeightedRandomRarity();
                 const possibleItems = ITEMS.filter(item => item.rarity === chosenRarity);
                 const itemData = { ...possibleItems[Math.floor(Math.random() * possibleItems.length)] };
-                itemData.prefix = Math.random() < (PREFIX_CHANCE + prefixBonus) ? PREFIXES[Math.floor(Math.random() * PREFIXES.length)] : null;
-                const rarityInfo = RARITY_DETAILS[itemData.rarity];
 
-                const isHighRarity = ['epic', 'legendary', 'mythic'].includes(itemData.rarity);
+                itemData.prefix = Math.random() < (PREFIX_CHANCE + prefixBonus) ? PREFIXES[Math.floor(Math.random() * PREFIXES.length)] : null;
+
+                let displayRarityInfo = RARITY_DETAILS[itemData.rarity];
+                let displayName = itemData.name;
+                const isHighRarity = ['epic', 'legendary', 'mythic', 'celestial'].includes(itemData.rarity);
                 const isDiscovered = discoveredItems.includes(itemData.name);
-                const displayName = isHighRarity && !isDiscovered ? '????' : itemData.name;
+
+                if (isHighRarity && !isDiscovered) {
+                    displayName = '????';
+                }
+
+                if (itemData.rarity === 'celestial') {
+                    displayRarityInfo = RARITY_DETAILS['mythic'];
+                    displayName = '????';
+                }
 
                 const itemEl = document.createElement('div');
-                itemEl.className = `flex-shrink-0 w-32 h-32 mx-2 sharp-item flex flex-col items-center justify-center p-2 border-b-4 ${rarityInfo.bgColor} shadow-md`;
-                itemEl.style.borderColor = rarityInfo.color;
+                itemEl.className = `flex-shrink-0 w-32 h-32 mx-2 sharp-item flex flex-col items-center justify-center p-2 border-b-4 ${displayRarityInfo.bgColor} shadow-md`;
+                itemEl.style.borderColor = displayRarityInfo.color;
+
                 const nameHTML = itemData.prefix
                     ? `<div class="font-bold text-center text-sm text-white glistening-text">${displayName}</div>`
                     : `<div class="font-bold text-center text-sm text-white"><span>${displayName}</span></div>`;
-                itemEl.innerHTML = `${nameHTML}<div class="text-xs opacity-75 mt-1">${rarityInfo.label}</div>`;
+
+                itemEl.innerHTML = `${nameHTML}<div class="text-xs opacity-75 mt-1">${displayRarityInfo.label}</div>`;
+
                 itemEl.dataset.item = JSON.stringify(itemData);
                 elements.reel.appendChild(itemEl);
             }
